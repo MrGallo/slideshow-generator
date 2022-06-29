@@ -26,6 +26,7 @@ SCHOOL_LOGO_PATH = PHOTOS_BASE_DIR / "school_logo.png"
 PHOTO_DIRECTORIES = [
     "RETAKES",
     "ORIGINALS",
+    "STUDENT-IDS",
 ]
 
 OUTPUT_PDF_FILENAME = "slideshow.pdf"
@@ -83,10 +84,14 @@ def main():
     ## CREATE NEW SLIDE
     slides = []
     # for s in (s for s in students if len(s["awards"]) > 0):  # awards only
-    for s in students:
+    for n, s in enumerate(students, 1):
         new_slide = base_template.copy()
         name = f"{s['first_name']} {s['last_name']}"
         add_name(name, new_slide, has_awards=len(s["awards"]) > 0)
+
+        if len(s["awards"]) > 5:
+            print(f"ISSUE: More than 5 awards. Slide #{n}, name: {name}")
+            s["awards"] = [", ".join(s["awards"])]
         add_achievements(s["awards"], new_slide)
         if "image_file" in s.keys():
             add_image(s["image_file"], new_slide)
@@ -168,7 +173,8 @@ def add_name(name_text, image, has_awards=False):
 
 
 def add_achievements(awards, image):
-    if len(awards) == 0: return
+    if len(awards) == 0:
+        return
     draw = ImageDraw.Draw(image)
     award_text_height = int(HEIGHT * 0.10)
     awards = ["\n".join(textwrap.wrap(text, width=30)) for text in awards]
