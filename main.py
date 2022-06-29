@@ -89,8 +89,8 @@ def main():
         name = f"{s['first_name']} {s['last_name']}"
         add_name(name, new_slide, has_awards=len(s["awards"]) > 0)
 
-        if len(s["awards"]) > 5:
-            print(f"ISSUE: More than 5 awards. Slide #{n}, name: {name}")
+        if len(s["awards"]) > 4:
+            print(f"ISSUE: More than 4 awards. Slide #{n}, name: {name}")
             s["awards"] = [", ".join(s["awards"])]
         add_achievements(s["awards"], new_slide)
         if "image_file" in s.keys():
