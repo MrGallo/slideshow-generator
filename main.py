@@ -14,8 +14,8 @@ PRIMARY_FONT_PATH = "fonts/Cambo-Regular.ttf"
 SECONDARY_FONT_PATH = "fonts/ArialTh.ttf"
 
 # Data
-TSV_FILE_PATH = "data/Master Grad List June 2022 (05_25).xlsx - All Graduates.tsv"
-TABLE_FIELDS = "status student_id full_name first_name last_name grade instr_set diploma ont_scholar honour_roll awards subject shsm shsm_sem1 shsm_sem2 feb_grad".split()
+TSV_FILE_PATH = "data/grade 12.tsv"
+TABLE_FIELDS = "Number, Course, Course Title, Student Name".split(", ")
 
 # Image paths
 PHOTOS_BASE_DIR = pathlib.Path("images")
@@ -23,11 +23,11 @@ SCHOOL_LOGO_PATH = PHOTOS_BASE_DIR / "school_logo.png"
 
 # The subdirectories in your photos base dir
 # The topmost directories have the higher priority
-PHOTO_DIRECTORIES = [
-    "RETAKES",
-    "ORIGINALS",
-    "STUDENT-IDS",
-]
+# PHOTO_DIRECTORIES = [
+#     "RETAKES",
+#     "ORIGINALS",
+#     "STUDENT-IDS",
+# ]
 
 OUTPUT_PDF_FILENAME = "slideshow.pdf"
 
@@ -44,38 +44,40 @@ def main():
     
     students = []
     for row in data:
-        if row[1] == "":
-            print(f"ISSUE: Student ({row[2]}) has no student number.")
-            continue
+        # if row[1] == "":
+        #     # print(f"ISSUE: Student ({row[2]}) has no student number.")
+        #     continue
 
         student = {}
         for key, value in zip(TABLE_FIELDS, row):
             student[key] = value
         
-        student["awards"] = [a.strip() for a in student["awards"].split(";") if a != ""]
-        if student["ont_scholar"]:
-            student["awards"] = ["Ontario Scholar"] + student["awards"]
-        if student["honour_roll"]:
-            student["awards"] = ["Honour Roll"] + student["awards"]
+        # print(student)
+        
+        student["Course Title"] = [a.strip() for a in student["Course Title"].split(";") if a != ""]
+        # if student["ont_scholar"]:
+        #     student["awards"] = ["Ontario Scholar"] + student["awards"]
+        # if student["honour_roll"]:
+        #     student["awards"] = ["Honour Roll"] + student["awards"]
         students.append(student)
     
     # MATCH STUDENTS WITH PHOTOS
-    students_by_id = dict((s["student_id"], s) for s in students)
+    # students_by_id = dict((s["student_id"], s) for s in students)
 
-    for subdir in PHOTO_DIRECTORIES:
-        for file in pathlib.Path(PHOTOS_BASE_DIR / subdir).iterdir():
-            if file.suffix.lower() == ".jpg":
-                student_id = file.stem
-                image_key_name = "image_file"
-                try:
-                    if image_key_name not in students_by_id[student_id].keys():
-                        students_by_id[student_id][image_key_name] = file
-                except KeyError:
-                    print(f"ISSUE: The image '{file.as_posix()}' cannot be found in the student list.")
+    # for subdir in PHOTO_DIRECTORIES:
+    #     for file in pathlib.Path(PHOTOS_BASE_DIR / subdir).iterdir():
+    #         if file.suffix.lower() == ".jpg":
+    #             student_id = file.stem
+    #             image_key_name = "image_file"
+    #             try:
+    #                 if image_key_name not in students_by_id[student_id].keys():
+    #                     students_by_id[student_id][image_key_name] = file
+    #             except KeyError:
+    #                 print(f"ISSUE: The image '{file.as_posix()}' cannot be found in the student list.")
 
-    for s in students:
-        if "image_file" not in s.keys():
-            print(f"ISSUE: Missing photo for {s['full_name']} ({s['student_id']}).")
+    # for s in students:
+    #     if "image_file" not in s.keys():
+    #         print(f"ISSUE: Missing photo for {s['full_name']} ({s['student_id']}).")
 
 
     # CREATE SLIDES
@@ -86,16 +88,15 @@ def main():
     # for s in (s for s in students if len(s["awards"]) > 0):  # awards only
     for n, s in enumerate(students, 1):
         new_slide = base_template.copy()
-        name = f"{s['first_name']} {s['last_name']}"
-        add_name(name, new_slide, has_awards=len(s["awards"]) > 0)
+        # name = f"{s['first_name']} {s['last_name']}"
+        name = s["Student Name"]
+        add_name(name, new_slide, has_awards=len(s["Course Title"]) > 0)
 
-        if len(s["awards"]) > 4:
+        if len(s["Course Title"]) > 4:
             print(f"ISSUE: More than 4 awards. Slide #{n}, name: {name}")
-            s["awards"] = [", ".join(s["awards"])]
-        add_achievements(s["awards"], new_slide)
-        if "image_file" in s.keys():
-            add_image(s["image_file"], new_slide)
-
+            s["Course Title"] = [", ".join(s["Course Title"])]
+        add_achievements(s["Course Title"], new_slide)
+        
         # new_slide.save('pil_img.png')
         slides.append(new_slide)
 
@@ -105,22 +106,22 @@ def main():
 def draw_base():
     bg = Image.new("RGB", (WIDTH, HEIGHT), color=BG_COLOR)
     logo = Image.open(SCHOOL_LOGO_PATH)
-    logo_side = logo.resize((int(logo.width*0.6), int(logo.height*0.6)))
+    # logo_side = logo.resize((int(logo.width*0.6), int(logo.height*0.6)))
 
     # SMALL LOGO
-    small_logo = logo.resize((int(logo.width * 0.20), int(logo.height * 0.20)))
-    left = LEFT_MIDPOINT - small_logo.width // 2
+    small_logo = logo.resize((int(logo.width * 0.75), int(logo.height * 0.75)))
+    left = WIDTH // 2 - small_logo.width // 2
     top = 60
     right = left + small_logo.width
     bottom = top + small_logo.height
-    bg.paste(small_logo, (left, top, right, bottom))
+    bg.paste(small_logo, (left, top, right, bottom), mask=small_logo)
 
-    # LOGO
-    left = RIGHT_MIDPOINT - logo_side.width//2
-    top = HEIGHT // 2 - logo_side.height // 2
-    right = left + logo_side.width
-    bottom = top + logo_side.height
-    bg.paste(logo_side, (left, top, right, bottom))
+    # # LOGO
+    # left = RIGHT_MIDPOINT - logo_side.width//2
+    # top = HEIGHT // 2 - logo_side.height // 2
+    # right = left + logo_side.width
+    # bottom = top + logo_side.height
+    # bg.paste(logo_side, (left, top, right, bottom))
     return bg
 
 
@@ -161,11 +162,11 @@ def add_name(name_text, image, has_awards=False):
     while True:
         name_font = ImageFont.truetype(PRIMARY_FONT_PATH, name_text_height)
         w, h = draw.textsize(name_text, name_font)
-        if w < WIDTH * 0.5:
+        if w < WIDTH * 0.8:
             break
         name_text_height -= 1
             
-    x = LEFT_MIDPOINT - (w//2)
+    x = WIDTH // 2 - (w//2)
     y = int(HEIGHT * 0.45 - (h//2))
     if has_awards:
         y = int(HEIGHT * 0.40 - (h//2))
@@ -177,17 +178,17 @@ def add_achievements(awards, image):
         return
     draw = ImageDraw.Draw(image)
     award_text_height = int(HEIGHT * 0.10)
-    awards = ["\n".join(textwrap.wrap(text, width=30)) for text in awards]
+    awards = ["\n".join(textwrap.wrap(text, width=50)) for text in awards]
     award_text = "\n".join(awards)
 
     while True:
         award_font= ImageFont.truetype(SECONDARY_FONT_PATH, award_text_height)
         w, h = draw.textsize(award_text, award_font)
-        if w < WIDTH * 0.45:
+        if w < WIDTH * 0.90:
             break
         award_text_height -= 1
         
-    x = LEFT_MIDPOINT - (w//2)
+    x = WIDTH//2 - (w//2)
     y = int(HEIGHT * 2 / 3) - (h//2)
     draw.text((x, y), award_text, font=award_font, fill=SECONDARY_COLOR, spacing=HEIGHT * 0.03, align="center")
 
