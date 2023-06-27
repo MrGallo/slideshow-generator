@@ -25,8 +25,8 @@ SCHOOL_LOGO_PATH = PHOTOS_BASE_DIR / "school_logo.png"
 # The topmost directories have the higher priority
 PHOTO_DIRECTORIES = [
     "RETAKES",
-    # "ORIGINALS",
-    "Name With ID",
+    "GRAD_PHOTOS",
+    # "REGULAR",
 ]
 
 OUTPUT_PDF_FILENAME = "slideshow.pdf"
