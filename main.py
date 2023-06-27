@@ -25,8 +25,8 @@ SCHOOL_LOGO_PATH = PHOTOS_BASE_DIR / "school_logo.png"
 # The topmost directories have the higher priority
 PHOTO_DIRECTORIES = [
     "RETAKES",
-    "ORIGINALS",
-    "STUDENT-IDS",
+    # "ORIGINALS",
+    "Name With ID",
 ]
 
 OUTPUT_PDF_FILENAME = "slideshow.pdf"
@@ -84,7 +84,7 @@ def main():
     ## CREATE NEW SLIDE
     slides = []
     # for s in (s for s in students if len(s["awards"]) > 0):  # awards only
-    for n, s in enumerate(students, 1):
+    for n, s in enumerate(students[:5], 1):
         new_slide = base_template.copy()
         name = f"{s['first_name']} {s['last_name']}"
         add_name(name, new_slide, has_awards=len(s["awards"]) > 0)
@@ -105,22 +105,22 @@ def main():
 def draw_base():
     bg = Image.new("RGB", (WIDTH, HEIGHT), color=BG_COLOR)
     logo = Image.open(SCHOOL_LOGO_PATH)
-    logo_side = logo.resize((int(logo.width*0.6), int(logo.height*0.6)))
+    logo_side = logo
 
     # SMALL LOGO
-    small_logo = logo.resize((int(logo.width * 0.20), int(logo.height * 0.20)))
+    small_logo = logo.resize((int(logo.width * 0.30), int(logo.height * 0.30)))
     left = LEFT_MIDPOINT - small_logo.width // 2
-    top = 60
+    top = 175
     right = left + small_logo.width
     bottom = top + small_logo.height
-    bg.paste(small_logo, (left, top, right, bottom))
+    bg.paste(small_logo, (left, top, right, bottom), mask=small_logo)
 
     # LOGO
     left = RIGHT_MIDPOINT - logo_side.width//2
     top = HEIGHT // 2 - logo_side.height // 2
     right = left + logo_side.width
     bottom = top + logo_side.height
-    bg.paste(logo_side, (left, top, right, bottom))
+    bg.paste(logo_side, (left, top, right, bottom), mask=logo_side)
     return bg
 
 
@@ -160,7 +160,8 @@ def add_name(name_text, image, has_awards=False):
 
     while True:
         name_font = ImageFont.truetype(PRIMARY_FONT_PATH, name_text_height)
-        w, h = draw.textsize(name_text, name_font)
+        # w, h = draw.textsize(name_text, name_font)
+        top, left, w, h = draw.textbbox((0, 0), name_text, name_font)
         if w < WIDTH * 0.5:
             break
         name_text_height -= 1
