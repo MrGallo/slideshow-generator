@@ -14,8 +14,8 @@ PRIMARY_FONT_PATH = "fonts/Cambo-Regular.ttf"
 SECONDARY_FONT_PATH = "fonts/ArialTh.ttf"
 
 # Data
-TSV_FILE_PATH = "data/Master Grad List June 2022 (05_25).xlsx - All Graduates.tsv"
-TABLE_FIELDS = "status student_id full_name first_name last_name grade instr_set diploma ont_scholar honour_roll awards subject shsm shsm_sem1 shsm_sem2 feb_grad".split()
+TSV_FILE_PATH = "data/Potential Graduates June 2023 - All Graduates.tsv"
+TABLE_FIELDS = "status student_id full_name last_name first_name grade instr_set diploma ont_scholar honour_roll awards shsm notes".split()
 
 # Image paths
 PHOTOS_BASE_DIR = pathlib.Path("images")
