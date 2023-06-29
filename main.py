@@ -14,8 +14,8 @@ PRIMARY_FONT_PATH = "fonts/Cambo-Regular.ttf"
 SECONDARY_FONT_PATH = "fonts/ArialTh.ttf"
 
 # Data
-TSV_FILE_PATH = "data/Potential Graduates June 2023 - All Graduates.tsv"
-TABLE_FIELDS = "status student_id full_name last_name first_name grade instr_set diploma ont_scholar honour_roll awards shsm notes".split()
+TSV_FILE_PATH = "data/Potential Graduates June 2023 - Slide show ready.tsv"
+TABLE_FIELDS = "status student_id full_name last_name first_name ont_scholar honour_roll shsm awards".split()
 
 # Image paths
 PHOTOS_BASE_DIR = pathlib.Path("images")
@@ -26,7 +26,8 @@ SCHOOL_LOGO_PATH = PHOTOS_BASE_DIR / "school_logo.png"
 PHOTO_DIRECTORIES = [
     "RETAKES",
     "GRAD_PHOTOS",
-    # "REGULAR",
+    "SEPTEMBER_RETAKES",
+    "SEPTEMBER",
 ]
 
 OUTPUT_PDF_FILENAME = "slideshow.pdf"
@@ -43,20 +44,39 @@ def main():
         data = list(read_tsv)[1:]
     
     students = []
+    student_ids = set()
+    student_ids_not_attending = set()
     for row in data:
         if row[1] == "":
             print(f"ISSUE: Student ({row[2]}) has no student number.")
+            continue
+        
+        if 'x' in row[0].lower():
+            student_ids_not_attending.add(row[1])
             continue
 
         student = {}
         for key, value in zip(TABLE_FIELDS, row):
             student[key] = value
         
+        # check for duplicate Student IDs
+        id = student["student_id"]
+        if id in student_ids:
+            print(f"ERROR: Student ID duplicate ({id}).")
+        student_ids.add(id)
+        
         student["awards"] = [a.strip() for a in student["awards"].split(";") if a != ""]
         if student["ont_scholar"]:
             student["awards"] = ["Ontario Scholar"] + student["awards"]
         if student["honour_roll"]:
             student["awards"] = ["Honour Roll"] + student["awards"]
+        if (shsm := student["shsm"].upper()) != "":
+            shsm_text = {
+                "HLW": "Health and Wellness SHSM", 
+                "AVA": "Aerospace and Aviation SHSM",
+                "CSE": "Justice, Community Safety & Emergency Services SHSM"}[shsm]
+            student["awards"] = [shsm_text] + student["awards"]
+
         students.append(student)
     
     # MATCH STUDENTS WITH PHOTOS
@@ -71,7 +91,8 @@ def main():
                     if image_key_name not in students_by_id[student_id].keys():
                         students_by_id[student_id][image_key_name] = file
                 except KeyError:
-                    print(f"ISSUE: The image '{file.as_posix()}' cannot be found in the student list.")
+                    if student_id not in student_ids_not_attending:
+                        print(f"ISSUE: The image '{file.as_posix()}' cannot be found in the student list.")
 
     for s in students:
         if "image_file" not in s.keys():
@@ -84,13 +105,13 @@ def main():
     ## CREATE NEW SLIDE
     slides = []
     # for s in (s for s in students if len(s["awards"]) > 0):  # awards only
-    for n, s in enumerate(students[:5], 1):
+    for n, s in enumerate(students, 1):
         new_slide = base_template.copy()
         name = f"{s['first_name']} {s['last_name']}"
         add_name(name, new_slide, has_awards=len(s["awards"]) > 0)
 
-        if len(s["awards"]) > 4:
-            print(f"ISSUE: More than 4 awards. Slide #{n}, name: {name}")
+        if len(s["awards"]) > 3:
+            print(f"ISSUE: More than 3 awards. Slide #{n}, name: {name}")
             s["awards"] = [", ".join(s["awards"])]
         add_achievements(s["awards"], new_slide)
         if "image_file" in s.keys():
@@ -183,8 +204,9 @@ def add_achievements(awards, image):
 
     while True:
         award_font= ImageFont.truetype(SECONDARY_FONT_PATH, award_text_height)
-        w, h = draw.textsize(award_text, award_font)
-        if w < WIDTH * 0.45:
+        # w, h = draw.textsize(award_text, award_font)
+        top, left, w, h = draw.textbbox((0, 0), award_text, award_font)
+        if w < WIDTH * 0.45 and h < HEIGHT * 0.33:
             break
         award_text_height -= 1
         
