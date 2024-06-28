@@ -14,8 +14,8 @@ PRIMARY_FONT_PATH = "fonts/Cambo-Regular.ttf"
 SECONDARY_FONT_PATH = "fonts/ArialTh.ttf"
 
 # Data
-TSV_FILE_PATH = "data/Potential Graduates June 2023 - Slide show ready.tsv"
-TABLE_FIELDS = "status student_id full_name last_name first_name ont_scholar honour_roll shsm awards".split()
+TSV_FILE_PATH = "data/Potential Grads 2023-24 - Slideshow Ready.tsv"
+TABLE_FIELDS = "status student_id last_name first_name ont_scholar honour_roll shsm awards".split()
 
 # Image paths
 PHOTOS_BASE_DIR = pathlib.Path("images")
@@ -26,8 +26,7 @@ SCHOOL_LOGO_PATH = PHOTOS_BASE_DIR / "school_logo.png"
 PHOTO_DIRECTORIES = [
     "RETAKES",
     "GRAD_PHOTOS",
-    "SEPTEMBER_RETAKES",
-    "SEPTEMBER",
+    "EXTRAS",
 ]
 
 OUTPUT_PDF_FILENAME = "slideshow.pdf"
@@ -83,20 +82,25 @@ def main():
     students_by_id = dict((s["student_id"], s) for s in students)
 
     for subdir in PHOTO_DIRECTORIES:
+        # Scan all available photos
         for file in pathlib.Path(PHOTOS_BASE_DIR / subdir).iterdir():
             if file.suffix.lower() == ".jpg":
                 student_id = file.stem
                 image_key_name = "image_file"
                 try:
+                    # Try to find a student record from the spreadsheet with that student id
+                    # If we haven't already found an image for them, add it
                     if image_key_name not in students_by_id[student_id].keys():
                         students_by_id[student_id][image_key_name] = file
                 except KeyError:
+                    # The case where we have a photo with a particular student id
+                    # But they are not in the slideshow
                     if student_id not in student_ids_not_attending:
                         print(f"ISSUE: The image '{file.as_posix()}' cannot be found in the student list.")
 
     for s in students:
         if "image_file" not in s.keys():
-            print(f"ISSUE: Missing photo for {s['full_name']} ({s['student_id']}).")
+            print(f"ISSUE: Missing photo for {s['first_name']} {s['last_name']} ({s['student_id']}).")
 
 
     # CREATE SLIDES
