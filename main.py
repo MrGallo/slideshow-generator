@@ -73,7 +73,8 @@ def main():
             shsm_text = {
                 "HLW": "Health and Wellness SHSM", 
                 "AVA": "Aerospace and Aviation SHSM",
-                "CSE": "Justice, Community Safety & Emergency Services SHSM"}[shsm]
+                "CTR": "Construction SHSM",
+                "CSE": "Community Safety SHSM"}[shsm]
             student["awards"] = [shsm_text] + student["awards"]
 
         students.append(student)
